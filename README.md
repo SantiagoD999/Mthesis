@@ -9,5 +9,5 @@ Description of files:
 
 3. maininfI(0).R: R routine for monthly inflation forecasting after differencing acording to ADF test. 
 
-4. maininf.R: R routine for monthly depreciation rate forecasting. 
+4. maintrm.R: R routine for monthly depreciation rate forecasting. 
 
