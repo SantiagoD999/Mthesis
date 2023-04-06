@@ -13,7 +13,7 @@ Description of files:
 
 
 ****************************************************************************
-An an alternative to create the lagged dataset (as the funs_() was deprecated) use: 
+As an alternative to create the lagged dataset (as the funs_() was deprecated) use: 
 lag_functions1 <- 1:h %>% lapply(function(x) function(col) dplyr::lag(col, x))
 vintage1<-vintage1 %>% 
     mutate_at(vars(colnames(vintage1)), funs_(lag_functions1))
