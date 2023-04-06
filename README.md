@@ -19,4 +19,6 @@ vintage1<-vintage1 %>%
     mutate_at(vars(colnames(vintage1)), funs_(lag_functions1))
     
 The names of the lags are different, but this does not affect the modelling.
+
+For the issue see: https://github.com/tidyverse/dplyr/issues/5213
 ****************************************************************************
