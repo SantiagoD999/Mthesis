@@ -11,3 +11,12 @@ Description of files:
 
 4. maintrm.R: R routine for monthly depreciation rate forecasting. For the model in I(0) space just change the database used from dftrm2 to dftrm3.
 
+
+****************************************************************************
+An an alternative to create the lagged dataset (as the funs_() was deprecated) use: 
+lag_functions1 <- 1:h %>% lapply(function(x) function(col) dplyr::lag(col, x))
+vintage1<-vintage1 %>% 
+    mutate_at(vars(colnames(vintage1)), funs_(lag_functions1))
+    
+The names of the lags are different, but this does not affect the modelling.
+****************************************************************************
