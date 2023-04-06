@@ -15,12 +15,14 @@ Description of files:
 ****************************************************************************
 As an alternative to create the lagged dataset (as the funs_() is deprecated) use: 
 
-lag_functions1 <- 1:h %>% lapply(function(x) function(col) dplyr::lag(col, x)) # For h>1
+lag_functions1 <- lags %>% lapply(function(x) function(col) dplyr::lag(col, x)) # For max(lags)>1
 
 vintage1<-vintage1 %>% 
     mutate_at(vars(colnames(vintage1)), lag_functions1)
     
 The names of the lags are different, but this does not affect the models
 
-For the issue see: https://github.com/tidyverse/dplyr/issues/5213
+For the source see the issue: https://github.com/tidyverse/dplyr/issues/5213
+
+Now, for univarate models (for which max(lags)=1), set lags=1:2 and before X<-zoo(vintage1) just use grepl to eliminate all columns that end with "fn2".
 ****************************************************************************
