@@ -28,3 +28,44 @@ For the source see the issue: https://github.com/tidyverse/dplyr/issues/5213
 
 Now, for univarate models (for which max(lags)=1), set lags=1:2 and before X<-zoo(vintage1) just use grepl to eliminate all columns that end with "fn2".
 ****************************************************************************
+
+Including all seasonal dummies for some models could be tried, just use function seasall (an small variation on seasonaldummy)instead of seasonaldummy (https://pkg.robjhyndman.com/forecast/reference/seasonaldummy.html) :
+
+
+seasall<-function (x, h = NULL) {
+  if (!is.ts(x)) {
+    stop("Not a time series")
+  }
+  else {
+    fr.x <- frequency(x)
+  }
+  if (is.null(h)) {
+    if (fr.x == 1) {
+      stop("Non-seasonal time series")
+    }
+    dummy <- as.factor(cycle(x))
+    dummy.mat <- matrix(0, ncol = frequency(x), nrow = length(x))
+    nrow <- 1:length(x)
+    for (i in 1:(frequency(x))) dummy.mat[dummy == paste(i), 
+                                              i] <- 1
+    colnames(dummy.mat) <- if (fr.x == 12) {
+      month.abb[1:12]
+    }
+    else if (fr.x == 4) {
+      c("Q1", "Q2", "Q3","Q4")
+    }
+    else {
+      paste("S", 1:(fr.x ), sep = "")
+    }
+    return(dummy.mat)
+  }
+  else {
+    return(seasonaldummy(ts(rep(0, h), start = tsp(x)[2] + 
+                              1/fr.x, frequency = fr.x)))
+  }
+}
+
+****************************************************************************
+
+
+
