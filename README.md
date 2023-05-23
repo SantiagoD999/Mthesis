@@ -29,7 +29,7 @@ For the source see the issue: https://github.com/tidyverse/dplyr/issues/5213
 Now, for univarate models (for which max(lags)=1), set lags=1:2 and before X<-zoo(vintage1) just use grepl to eliminate all columns that end with "fn2".
 ****************************************************************************
 
-For including all seasonal dummies for some models (instead of omitting one category), just use function seasall which is at the beginning of the maininf f.R script instead of the seasonaldummy function from https://pkg.robjhyndman.com/forecast/reference/seasonaldummy.html).
+For including all seasonal dummies (instead of omitting one category), just use function seasall which is at the beginning of the maininf f.R script instead of the seasonaldummy function from https://pkg.robjhyndman.com/forecast/reference/seasonaldummy.html).
 
 
 
