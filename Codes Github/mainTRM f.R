@@ -786,6 +786,93 @@ esurveydata<-surveydata[1:37]-dftrm2[302:338,1]
 
 dm.test(esurveydata,efmean1,h=h,varestimator = "bartlett")
 
+#### Simple comparison using the 10th of every month ####
+
+surveydata1<-ts(read_excel("~/Documents/Graduate Thesis/Data and Code/DATABASE1.xlsx", sheet = "SURVEYRES (TRM)"),frequency = 12,start = c(2019,01))[,3]
+surveydata2<-ts(read_excel("~/Documents/Graduate Thesis/Data and Code/DATABASE1.xlsx", sheet = "EX2017_2020")[,3],frequency = 12,start = c(2017,01))
+
+# Import packages
+for (pkg in c("fpp2","fpp3","readxl","gets","nowcasting","dfms","vars","midasr","xts","plotly","tsDyn","caret",
+              "GGally","ForecastComb","TTR")){
+  library(pkg, character.only = TRUE)
+}
+
+datestrm<-as.Date(as.data.frame(read_excel("~/Documents/Graduate Thesis/Data and Code/DATABASE1.xlsx",sheet = "TRMNOW"))[,1])
+
+TRM<-xts(as.data.frame(read_excel("~/Documents/Graduate Thesis/Data and Code/DATABASE1.xlsx",sheet = "TRMNOW"))[,2],order.by = datestrm) 
+TRMmonthly<-to.monthly(TRM,OHLC=FALSE,indexAt = "lastof")
+
+# Joint-Modelling Approach
+
+fcst_dates <- seq.Date(from = as.Date("2019-01-12"),to = as.Date("2023-01-12"),
+                       by = "months")
+delay<-c(0)
+
+frwnowus1<-NULL
+frwnowus2<-NULL
+
+for (date in fcst_dates){
+  
+  data1<-cbind(TRM)
+  
+  for (i in 1:NCOL(data1)){
+    data1[,i]<-ifelse(time(data1[,i]) <= as.Date(date)-delay[i],data1[,i], NA)
+  }
+  
+  TRM1day12<-ROC(to.monthly(data1[,1],OHLC=FALSE,indexAt = "lastof"),n=1,type = "discrete",na.pad = FALSE)*100
+  TRMmonthly1<-ROC(TRMmonthly[time(TRMmonthly)<=as.Date(date)],n=1,type = "discrete",na.pad = FALSE)*100
+  
+  nowusgdp<-cbind(TRMmonthly1,TRM1day12)
+  colnames(nowusgdp)<-c("TRM1","TRMday")
+  nowusgdp<-nowusgdp[time(nowusgdp)>=(floor_date(head(time(na.omit(nowusgdp[,-1])),1),unit = "months")+months(1)-days(1)),]
+  Data1<-nowusgdp
+  
+  print(tail(Data1))
+  
+  Data1<-Data1[time(Data1)<=(floor_date(tail(time(na.omit(Data1[,1])),1),unit = "months")+months(2)-days(1))]  
+  
+  # Univariate
+  
+  Data1ts<-ts(Data1,frequency = 12,start = zoo::as.yearmon(start(Data1)))
+  
+  frwnowus1<-c(frwnowus1,tail(na.omit(Data1[,2]),1))
+  frwnowus2<-c(frwnowus2, forecast::rwf(na.omit(Data1ts[,1]),h=1)$mean)
+  
+}
+
+evaldates<-"2019-01-31/2023-01-31"
+forecast::accuracy(frwnowus1,dftrm2[326:374,1])
+forecast::accuracy(frwnowus2,dftrm2[326:374,1])
+forecast::accuracy(surveydata1,dftrm2[326:374,1])
+
+autoplot(ts(dftrm2[326:374,1]))+
+  autolayer(ts(frwnowus1))+
+  autolayer(ts(frwnowus2))+
+  autolayer(ts(surveydata1))
+
+efrwnowus1<-frwnowus1[1:49]-dftrm2[326:374,1]
+esurveydata1<-surveydata1[1:49]-dftrm2[326:374,1]
+
+dm.test(esurveydata1,efrwnowus1,h=1,varestimator = "bartlett")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
