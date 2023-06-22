@@ -227,7 +227,7 @@ ggsubseriesplot(na.omit(dfinf2[,variable])) +
 
 ggseasonplot(na.omit(dfinf2[,variable]),year.labels=TRUE, year.labels.left=TRUE) +
   ylab("%") +
-  ggtitle("Consumer's Inflation Rate (CPI)",subtitle = "Monthly Change Rater")
+  ggtitle("Consumer's Inflation Rate (CPI)",subtitle = "Monthly Change Rate")
 
 summary(tslm(na.omit(dfinf2[,variable])~season))
 
