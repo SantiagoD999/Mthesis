@@ -282,6 +282,163 @@ efdfm<-fdfm[1:49]-dfinf2[774:822,1]
 
 dm.test(efdfm,efrw1,h=h,varestimator = "bartlett")
 
+##### Sensitivity Analysis ######
+
+h<-1
+fcst_dates1 <- seq.Date(from = as.Date("2017-01-12"),to =as.Date("2020-02-12"),by ="months")
+apply_lags <- function(mydf, k) {
+  lag(mydf, n = k)
+}
+lags <- seq(1:12)
+label = glue::glue("{lags}") %>% 
+  as.character()
+lag_functions <- setNames(paste("apply_lags(., ", lags, ")"), nm = label)
+
+frw1<-NULL
+for (date in fcst_dates1) {
+  vintage<-PRTDB(dfinf2,pdelayinf1,vintage = date)
+  vintage1<-as.data.frame(vintage)
+  vintage1[NROW(vintage1)+50,]<-NA
+  vintage1<-vintage1 %>% 
+    mutate_at(vars(colnames(vintage1)), funs_(lag_functions))
+  #X<-zoo(cbind(vintage1,"trend"=rep(1:NROW(vintage1))))
+  X<-zoo(vintage1)
+  X1<-cbind("INF"=X[,1],X[ , colSums(is.na(X[(length(na.omit(X[,1]))+h),]))==0])
+  frw1<-c(frw1,tail(na.omit(X1)[,"INF"],1))
+}
+forecast::accuracy(frw1,as.numeric(dfinf2[750:786,1]))
+autoplot(ts(dfinf2[750:786,1]))+autolayer(ts(frw1))
+
+farima<-NULL
+for (date in fcst_dates1) {
+  vintage<-PRTDB(dfinf2,pdelayinf1,vintage = date)
+  vintage1<-as.data.frame(vintage)
+  vintage1[NROW(vintage1)+50,]<-NA
+  vintage1<-vintage1 %>% 
+    mutate_at(vars(colnames(vintage1)), funs_(lag_functions))
+  #X<-zoo(cbind(vintage1,"trend"=rep(1:NROW(vintage1))))
+  X<-zoo(vintage1)
+  X1<-ts(cbind("INF"=X[,1],X[ , colSums(is.na(X[(length(na.omit(X[,1]))+h),]))==0]),start=start(vintage),frequency = 12)
+  mod<-auto.arima(na.omit(X1)[,"INF"])
+  farima<-c(farima,forecast::forecast(mod,h=h)$mean[1:h][h])
+}
+forecast::accuracy(farima,as.numeric(dfinf2[750:786,1]))
+autoplot(ts(dfinf2[750:786,1]))+autolayer(ts(farima))
+
+efrw1<-frw1[1:37]-dfinf2[750:786,1]
+earima<-farima[1:37]-dfinf2[750:786,1]
+
+dm.test(earima,efrw1,h=h,varestimator = "bartlett")
+
+max(floor((ncol(X1)-1)/3), 1)
+ntree=1000
+alphas1<-seq(0,1,length=100)
+lambdas1 <- 10^seq(-3, 3, length = 100)
+cost1<-10^seq(-4,4,length=10)
+k1=seq(1:12)
+fml<-NULL
+for (date in fcst_dates1) {
+  vintageI0<-PRTDB(dfinf2,delay = pdelayinf1,vintage = date)
+  vintage<-PRTDB(dfinf3,delay = pdelayinf1,vintage = date)
+  NAs<-matrix(rep(NA),nrow = 50,ncol=ncol(vintage))
+  vintage<-ts(rbind(vintage,NAs),start = start(vintage),frequency = 12)
+  seas<-as.data.frame(seasonaldummy(vintage[,1]))
+  vintage1<-as.data.frame(vintage)
+  vintage1<-vintage1 %>% 
+    mutate_at(vars(colnames(vintage1)), funs_(lag_functions))
+  X<-zoo(cbind(vintage1,seas))
+  X1<-cbind("INF"=X[,1],X[ , colSums(is.na(X[(length(na.omit(X[,1]))+h),]))==0])
+  #X1<-X1[,c("INF","INF_1","INFIPP_1","M3_1","DTF90_1","EMBICOL_1","FOODINF_1","CRERTOT_1")]
+  myTimeControl <- trainControl(method = "timeslice",
+                                initialWindow = (NROW(na.omit(X1))-h-(20-1)),
+                                horizon = h,
+                                fixedWindow = FALSE)
+  glmnet.mod <- train(INF ~. ,
+                      data = na.omit(X1),
+                      method="knn",
+                      trControl = myTimeControl,
+                      metric='RMSE',tuneGrid=expand.grid(k=k1),preProcess=c("scale","center"))
+  
+  fml<-c(fml,sum(predict(glmnet.mod,X1[(length(na.omit(X1[,"INF"]))+1):(length(na.omit(X1[,"INF"]))+h),-1])[1:h])+as.numeric(tail(na.omit(vintageI0[,1]),1)))
+}
+forecast::accuracy(fml,as.numeric(dfinf2[750:786,1]))
+autoplot(ts(dfinf2[750:786,1]))+autolayer(ts(fml))
+
+efrw1<-frw1[1:37]-dfinf2[750:786,1]
+efml<-fml[1:37]-dfinf2[750:786,1]
+
+dm.test(efrw1,efml,h=h,varestimator = "bartlett")
+
+# For 1-step ahead comparision with EMEE
+
+surveydata<-ts(read_excel("~/Documents/Graduate Thesis/Data and Code/DATABASE1.xlsx", sheet = "EX2017_2020"),frequency = 12,start = c(2017,01))[,2]
+forecast::accuracy(surveydata,as.numeric(dfinf2[750:786,1]))
+autoplot(ts(dfinf2[750:786,1]))+autolayer(ts(surveydata))
+
+efrw1<-frw1[1:37]-dfinf2[750:786,1]
+esurveydata<-surveydata[1:37]-dfinf2[750:786,1]
+
+dm.test(esurveydata,efrw1,h=h,varestimator = "bartlett")
+
+fets<-NULL
+for (date in fcst_dates1) {
+  vintage<-PRTDB(dfinf2,pdelayinf1,vintage = date)
+  vintage1<-as.data.frame(vintage)
+  vintage1[NROW(vintage1)+50,]<-NA
+  vintage1<-vintage1 %>% 
+    mutate_at(vars(colnames(vintage1)), funs_(lag_functions))
+  #X<-zoo(cbind(vintage1,"trend"=rep(1:NROW(vintage1))))
+  X<-zoo(vintage1)
+  X1<-ts(cbind("INF"=X[,1],X[ , colSums(is.na(X[(length(na.omit(X[,1]))+h),]))==0]),start=start(vintage),frequency = 12)
+  mod<-ets(na.omit(X1)[,"INF"])
+  fets<-c(fets,forecast::forecast(mod,h=h)$mean[1:h][h])
+}
+forecast::accuracy(fets,as.numeric(dfinf2[750:786,1]))
+autoplot(ts(dfinf2[750:786,1]))+autolayer(ts(fets))
+
+efrw1<-frw1[1:37]-dfinf2[750:786,1]
+efets<-fets[1:37]-dfinf2[750:786,1]
+
+dm.test(efets,efrw1,h=h,varestimator = "bartlett")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

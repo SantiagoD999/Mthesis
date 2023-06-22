@@ -179,14 +179,14 @@ autoplot(na.omit(relevantdata[,variable]),color="black")+
 
 # Histogram
 
-hist1<-hist(window(datainf2[,variable],end=c(1990,12)),plot = FALSE,breaks = 20)
-hist2<-hist(window(datainf2[,variable],start=c(1991,01)),plot = FALSE,breaks = 20)
-
-plot(hist1,col=rgb(0,0,1,1/4),main="Histogram of Inflation Rates",xlab="%",xlim=c(-2,8),ylim=100)
-plot(hist2,col=rgb(1,0,0,0.5),add=TRUE)
-
-legend("topright", inset=.05, title="Periods of Time",
-       c("Pre_1991","Post_1991"), fill=c(rgb(0,0,1,1/4),rgb(1,0,0,0.5)))
+# hist1<-hist(window(datainf2[,variable],end=c(1990,12)),plot = FALSE,breaks = 20)
+# hist2<-hist(window(datainf2[,variable],start=c(1991,01)),plot = FALSE,breaks = 20)
+# 
+# plot(hist1,col=rgb(0,0,1,1/4),main="Histogram of Inflation Rates",xlab="%",xlim=c(-2,8),ylim=100)
+# plot(hist2,col=rgb(1,0,0,0.5),add=TRUE)
+# 
+# legend("topright", inset=.05, title="Periods of Time",
+#        c("Pre_1991","Post_1991"), fill=c(rgb(0,0,1,1/4),rgb(1,0,0,0.5)))
 
 period1<-na.omit(window(dfinf2[,variable],end=c(1990,12)))
 period2<-na.omit(window(dfinf2[,variable],start=c(1991,01)))
@@ -221,20 +221,20 @@ for (group in groups){
 
 # Seasonal Plots
 
-ggsubseriesplot(na.omit(relevantdata[,variable])) +
+ggsubseriesplot(na.omit(dfinf2[,variable])) +
   ylab("%") +
   ggtitle("Seasonal Plot: Consumer's Inflation Rate (CPI)",subtitle = "Monthly Change Rate")
 
-ggseasonplot(na.omit(relevantdata[,variable]),year.labels=TRUE, year.labels.left=TRUE) +
+ggseasonplot(na.omit(dfinf2[,variable]),year.labels=TRUE, year.labels.left=TRUE) +
   ylab("%") +
   ggtitle("Consumer's Inflation Rate (CPI)",subtitle = "Monthly Change Rater")
 
-summary(tslm(na.omit(relevantdata[,variable])~season))
+summary(tslm(na.omit(dfinf2[,variable])~season))
 
-ggPacf(na.omit(relevantdata[,variable]))+
+ggPacf(na.omit(dfinf2[,variable]))+
   ggtitle("Partial Autocorrelation Function: Consumer's Inflation Rate (CPI)",subtitle = "Monthly Change Rate")
 
-ggAcf(na.omit(relevantdata[,variable]))+
+ggAcf(na.omit(dfinf2[,variable]))+
   ggtitle("Autocorrelation Function: Consumer's Inflation Rate (CPI)",subtitle = "Monthly Change Rate")
 
 ### 4. Model estimation and Evaluation

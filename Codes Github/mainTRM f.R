@@ -691,6 +691,134 @@ autoplot(RESULTS3)+
   labs(y="%",x="Date",title = "Forecast Evaluation: Depreciation Rate (USD/COP)",subtitle = "Monthly Change Rate")+
   guides(colour = guide_legend(title = "Series"))
 
+##### Sensitivity Analysis ####
+
+h<-1
+fcst_dates1 <- seq.Date(from = as.Date("2017-01-12"),to =as.Date("2020-02-12"),by ="months")
+apply_lags <- function(mydf, k) {
+  lag(mydf, n = k)
+}
+lags <- seq(1:12)
+label = glue::glue("{lags}") %>% 
+  as.character()
+lag_functions <- setNames(paste("apply_lags(., ", lags, ")"), nm = label)
+
+frw1<-NULL
+for (date in fcst_dates1) {
+  vintage<-PRTDB(dftrm2,pdelaytrm1,vintage = date)
+  vintage1<-as.data.frame(vintage)
+  vintage1[NROW(vintage1)+50,]<-NA
+  vintage1<-vintage1 %>% 
+    mutate_at(vars(colnames(vintage1)), funs_(lag_functions))
+  X<-zoo(vintage1)
+  X1<-cbind("TRM"=X[,1],X[ , colSums(is.na(X[(length(na.omit(X[,1]))+h),]))==0])
+  frw1<-c(frw1,tail(na.omit(X1)[,"TRM"],1))
+}
+forecast::accuracy(frw1,dftrm2[302:338,1])
+autoplot(ts(dftrm2[302:338,1]))+autolayer(ts(frw1))
+
+fmean1<-NULL
+for (date in fcst_dates1) {
+  vintage<-PRTDB(dftrm2,pdelaytrm1,vintage = date)
+  vintage1<-as.data.frame(vintage)
+  vintage1[NROW(vintage1)+50,]<-NA
+  vintage1<-vintage1 %>% 
+    mutate_at(vars(colnames(vintage1)), funs_(lag_functions))
+  #X<-zoo(cbind(vintage1,"trend"=rep(1:NROW(vintage1))))
+  X<-zoo(vintage1)
+  X1<-cbind("TRM"=X[,1],X[ , colSums(is.na(X[(length(na.omit(X[,1]))+h),]))==0])
+  fmean1<-c(fmean1,mean(na.omit(X1)[,"TRM"]))
+}
+forecast::accuracy(fmean1,dftrm2[302:338,1])
+autoplot(ts(dftrm2[302:338,1]))+autolayer(ts(fmean1))
+
+efrw1<-dftrm2[302:338,1]-frw1[1:37]
+efmean1<-dftrm2[302:338,1]-fmean1[1:37]
+
+dm.test(efmean1,efrw1,h=h,varestimator = "bartlett")
+
+max(floor((ncol(X1)-1)/3), 1)
+ntree=1000
+alphas1<-seq(0,1,length=100)
+lambdas1 <- 10^seq(-3, 3, length = 100)
+cost1<-10^seq(-4,4,length=10)
+k1<-1:12
+fml<-NULL
+for (date in fcst_dates1) {
+  vintage<-PRTDB(dftrm2,delay = pdelaytrm1,vintage = date)
+  NAs<-matrix(rep(NA),nrow = 50,ncol=ncol(vintage))
+  vintage<-ts(rbind(vintage,NAs),start = start(vintage),frequency = 12)
+  seas<-as.data.frame(seasonaldummy(vintage[,1]))
+  vintage1<-as.data.frame(vintage)
+  vintage1<-vintage1 %>% 
+    mutate_at(vars(colnames(vintage1)), funs_(lag_functions))
+  X<-zoo(cbind(vintage1,seas))
+  X1<-cbind("TRM"=X[,1],X[ , colSums(is.na(X[(length(na.omit(X[,1]))+h),]))==0])
+  #X1<-X1[,c("TRM","TRM_13","TRM_14")]
+  myTimeControl <- trainControl(method = "timeslice",
+                                initialWindow = (NROW(na.omit(X1))-h-(20-1)),
+                                horizon = h,
+                                fixedWindow = FALSE,savePredictions = TRUE)
+  glmnet.mod <- caret::train(TRM ~. ,
+                             data = na.omit(X1),
+                             method="glmnet",
+                             trControl = myTimeControl,
+                             #preProc = c("center", "scale"),
+                             metric='RMSE',tuneGrid=expand.grid(alpha=1,lambda=lambdas1))
+  fml<-c(fml,as.numeric(predict(glmnet.mod,X1[(length(na.omit(X1[,"TRM"]))+1):(length(na.omit(X1[,"TRM"]))+h),-1]))[h])
+}
+forecast::accuracy(fml,dftrm2[302:338,1])
+autoplot(ts(dftrm2[302:338,1]))+autolayer(ts(fml))
+
+efrw1<-dftrm2[302:338,1]-frw1[1:37]
+efml<-dftrm2[302:338,1]-fml[1:37]
+
+dm.test(efml,efrw1,h=h,varestimator = "bartlett")
+
+# For 1-step ahead comparision with EMEE
+
+surveydata<-ts(read_excel("~/Documents/Graduate Thesis/Data and Code/DATABASE1.xlsx", sheet = "EX2017_2020"),frequency = 12,start = c(2017,01))[,3]
+forecast::accuracy(surveydata,as.numeric(dftrm2[302:338,1]))
+autoplot(ts(dftrm2[302:338,1]))+autolayer(ts(surveydata))
+
+efrw1<-frw1[1:37]-dftrm2[302:338,1]
+esurveydata<-surveydata[1:37]-dftrm2[302:338,1]
+
+dm.test(esurveydata,efmean1,h=h,varestimator = "bartlett")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
