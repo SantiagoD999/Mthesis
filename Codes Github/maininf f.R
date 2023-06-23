@@ -242,7 +242,7 @@ ggAcf(na.omit(dfinf2[,variable]))+
 # Univariate
 
 h<-1
-fcst_dates1 <- seq.Date(from = as.Date("2017-01-12"),to =as.Date("2023-02-12"),by ="months") # 24 months of train then from 2015 to before 2017. 
+fcst_dates1 <- seq.Date(from = as.Date("2019-01-12"),to =as.Date("2023-02-12"),by ="months") # 24 months of train then from 2015 to before 2017. 
 apply_lags <- function(mydf, k) {
   lag(mydf, n = k)
 }

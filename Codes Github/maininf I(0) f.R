@@ -289,7 +289,7 @@ fcst_dates1 <- seq.Date(from = as.Date("2017-01-12"),to =as.Date("2020-02-12"),b
 apply_lags <- function(mydf, k) {
   lag(mydf, n = k)
 }
-lags <- seq(1:12)
+lags <- seq(1:1)
 label = glue::glue("{lags}") %>% 
   as.character()
 lag_functions <- setNames(paste("apply_lags(., ", lags, ")"), nm = label)
@@ -361,11 +361,11 @@ for (date in fcst_dates1) {
   
   fml<-c(fml,sum(predict(glmnet.mod,X1[(length(na.omit(X1[,"INF"]))+1):(length(na.omit(X1[,"INF"]))+h),-1])[1:h])+as.numeric(tail(na.omit(vintageI0[,1]),1)))
 }
-forecast::accuracy(fml,as.numeric(dfinf2[750:786,1]))
-autoplot(ts(dfinf2[750:786,1]))+autolayer(ts(fml))
+forecast::accuracy(fml,as.numeric(dfinf2[774:822,1]))
+autoplot(ts(dfinf2[774:822,1]))+autolayer(ts(fml))
 
-efrw1<-frw1[1:37]-dfinf2[750:786,1]
-efml<-fml[1:37]-dfinf2[750:786,1]
+efrw1<-frw1[1:49]-dfinf2[774:822,1]
+efml<-fml[1:49]-dfinf2[774:822,1]
 
 dm.test(efrw1,efml,h=h,varestimator = "bartlett")
 
