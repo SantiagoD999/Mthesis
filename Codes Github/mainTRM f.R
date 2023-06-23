@@ -698,7 +698,7 @@ fcst_dates1 <- seq.Date(from = as.Date("2017-01-12"),to =as.Date("2020-02-12"),b
 apply_lags <- function(mydf, k) {
   lag(mydf, n = k)
 }
-lags <- seq(1:12)
+lags <- seq(1:1)
 label = glue::glue("{lags}") %>% 
   as.character()
 lag_functions <- setNames(paste("apply_lags(., ", lags, ")"), nm = label)
@@ -784,9 +784,9 @@ autoplot(ts(dftrm2[302:338,1]))+autolayer(ts(surveydata))
 efrw1<-frw1[1:37]-dftrm2[302:338,1]
 esurveydata<-surveydata[1:37]-dftrm2[302:338,1]
 
-dm.test(esurveydata,efmean1,h=h,varestimator = "bartlett")
+dm.test(esurveydata,efrw1,h=h,varestimator = "bartlett")
 
-#### Simple comparison using the 10th of every month ####
+#### Simple comparison using the 12th of every month ####
 
 surveydata1<-ts(read_excel("~/Documents/Graduate Thesis/Data and Code/DATABASE1.xlsx", sheet = "SURVEYRES (TRM)"),frequency = 12,start = c(2019,01))[,3]
 surveydata2<-ts(read_excel("~/Documents/Graduate Thesis/Data and Code/DATABASE1.xlsx", sheet = "EX2017_2020")[,3],frequency = 12,start = c(2017,01))
@@ -802,9 +802,7 @@ datestrm<-as.Date(as.data.frame(read_excel("~/Documents/Graduate Thesis/Data and
 TRM<-xts(as.data.frame(read_excel("~/Documents/Graduate Thesis/Data and Code/DATABASE1.xlsx",sheet = "TRMNOW"))[,2],order.by = datestrm) 
 TRMmonthly<-to.monthly(TRM,OHLC=FALSE,indexAt = "lastof")
 
-# Joint-Modelling Approach
-
-fcst_dates <- seq.Date(from = as.Date("2019-01-12"),to = as.Date("2023-01-12"),
+fcst_dates <- seq.Date(from = as.Date("2017-01-12"),to = as.Date("2020-01-12"),
                        by = "months")
 delay<-c(0)
 
@@ -840,20 +838,19 @@ for (date in fcst_dates){
   
 }
 
-evaldates<-"2019-01-31/2023-01-31"
-forecast::accuracy(frwnowus1,dftrm2[326:374,1])
-forecast::accuracy(frwnowus2,dftrm2[326:374,1])
-forecast::accuracy(surveydata1,dftrm2[326:374,1])
+forecast::accuracy(frwnowus1,dftrm2[302:338,1])
+forecast::accuracy(frwnowus2,dftrm2[302:338,1])
+forecast::accuracy(surveydata2,dftrm2[302:338,1])
 
-autoplot(ts(dftrm2[326:374,1]))+
+autoplot(ts(dftrm2[302:338,1]))+
   autolayer(ts(frwnowus1))+
   autolayer(ts(frwnowus2))+
-  autolayer(ts(surveydata1))
+  autolayer(ts(surveydata2))
 
-efrwnowus1<-frwnowus1[1:49]-dftrm2[326:374,1]
-esurveydata1<-surveydata1[1:49]-dftrm2[326:374,1]
+efrwnowus1<-frwnowus1[1:37]-dftrm2[302:338,1]
+esurveydata2<-surveydata2[1:37]-dftrm2[302:338,1]
 
-dm.test(esurveydata1,efrwnowus1,h=1,varestimator = "bartlett")
+dm.test(esurveydata2,efrwnowus1,h=1,varestimator = "bartlett")
 
 
 
