@@ -1,4 +1,4 @@
-##################### Main Inflation 
+##################### Main Inflation ######
 
 ### 1. Import Packages 
 
