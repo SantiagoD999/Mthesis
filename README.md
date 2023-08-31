@@ -11,8 +11,9 @@ Description of files:
 
 4. maintrm.R: R routine for monthly depreciation rate forecasting. For the model in I(0) space just change the database used from dftrm2 to dftrm3.
 
-5. Forecast evaluation results in Excel spreadsheets. 
+5. Forecast evaluation results in Excel spreadsheets.
 
+6. Forecasting Macroeconomic Series in Colombia P: Presentation.
 
 ****************************************************************************
 As an alternative to create the lagged dataset (as the funs_() is deprecated) use: 
