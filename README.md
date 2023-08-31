@@ -32,6 +32,8 @@ Now, for univarate models (for which max(lags)=1), set lags=1:2 and before X<-zo
 For including all seasonal dummies (instead of omitting one category), just use function seasall which is at the beginning of the maininf f.R script instead of the seasonaldummy function from https://pkg.robjhyndman.com/forecast/reference/seasonaldummy.html).
 
 
+****************************************************************************
 
+The forecast combinations were done using a fixed estimation window. 
 
 
