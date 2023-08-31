@@ -34,6 +34,6 @@ For including all seasonal dummies (instead of omitting one category), just use 
 
 ****************************************************************************
 
-The forecast combinations were done using a fixed estimation window. 
+The forecast combinations were done using a fixed estimation window, meanwhile the individual forecasts were computed using an expainding estimation window. 
 
 
