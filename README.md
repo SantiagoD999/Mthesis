@@ -1,5 +1,5 @@
 # Master's Thesis
-This repository has the codes and data used in my Master's in Economics Thesis. The code is written in R.
+This repository has the codes and data used in my Master's in Economics Thesis. The code is written in R. The thesis document can be found in https://repository.javeriana.edu.co/handle/10554/65067 
 
 Description of files:
 
@@ -27,7 +27,7 @@ The names of the lags are different, but this does not affect the models
 
 For the source see the issue: https://github.com/tidyverse/dplyr/issues/5213
 
-Now, for univarate models (for which max(lags)=1), set lags=1:2 and before X<-zoo(vintage1) just use grepl to eliminate all columns that end with "fn2".
+Now, for univariate models (for which max(lags)=1), set lags=1:2 and before X<-zoo(vintage1) just use grepl to eliminate all columns that end with "fn2".
 ****************************************************************************
 
 For including all seasonal dummies (instead of omitting one category), just use function seasall which is at the beginning of the maininf f.R script instead of the seasonaldummy function from https://pkg.robjhyndman.com/forecast/reference/seasonaldummy.html).
